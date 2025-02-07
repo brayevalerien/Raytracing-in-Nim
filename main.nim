@@ -1,4 +1,6 @@
 import std/strformat
+import vec3
+import color
 
 const imageWidth = 256
 const imageHeight = 256
@@ -11,15 +13,9 @@ file.writeLine(&"P3\n{imageWidth} {imageHeight}\n255")
 for j in 0..<imageHeight:
     stdout.write(&"\rScanlines remaining: {imageHeight - j} ")
     for i in 0..<imageWidth:
-        let r = float(i) / float(imageWidth - 1)
-        let g = float(j) / float(imageHeight - 1)
-        let b = 0.0
+        let color = color(float(i) / float(imageWidth - 1), float(j) / float(imageHeight - 1), 0.0)
 
-        let ir = int(255.999 * r)
-        let ig = int(255.999 * g)
-        let ib = int(255.999 * b)
-
-        file.writeLine(&"{ir} {ig} {ib}")
+        file.write_color(color)
 
 
 file.close()
