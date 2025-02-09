@@ -7,9 +7,14 @@ I've never coded in [Nim](https://nim-lang.org/) and thus thought a simple raytr
 > This repo only contains the source code for the current status of the renderer. However, you can go back through the commits to see the code for most of the chapters.
 
 # Installation and usage
-When writting this, I've only ran the following commands twice. You probably know it better than me. But hey, if you've [Nim](https://nim-lang.org/) installed on your computer and you can to try to run that code, do the following.
+Assuming you already have [Nim](https://nim-lang.org/) installed on your computer, run the following commands to get the project and run it.
 ```bash
 git clone https://github.com/brayevalerien/Raytracing-in-Nim
 cd Raytracing-in-Nim
 nim c -r main.nim
 ```
+
+The rendered image will be saved as `output.ppm`.
+
+For the moment, the image should look like this:
+![Current default render image](output.png)

@@ -3,8 +3,19 @@ import vec3
 import color
 import ray
 
-# temporary demo "shader": a blue to white gradient
+proc hit_sphere(r: Ray, center: Point3, radius: float): bool =
+    let oc = center - r.origin
+    let a = dot(r.direction, r.direction)
+    let b = - 2 * r.direction.dot(oc)
+    let c = dot(oc, oc) - radius*radius
+    let discriminant = b*b - 4*a*c
+    return 0 <= discriminant
+
+
 proc ray_color(r: Ray): Color =
+    if r.hit_sphere(point3(0, 0, -1), 0.5):
+        return color(1, 0, 0)
+    
     let unit_direction = r.direction.unit_vector
     let a = 0.5 * (unit_direction.y + 1.0)
     return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0)
