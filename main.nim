@@ -1,22 +1,50 @@
 import std/strformat
 import vec3
 import color
+import ray
 
-const imageWidth = 256
-const imageHeight = 256
+# temporary demo "shader": a blue to white gradient
+proc ray_color(r: Ray): Color =
+    let unit_direction = r.direction.unit_vector
+    let a = 0.5 * (unit_direction.y + 1.0)
+    return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0)
 
+
+# render resolution settings
+const aspect_ratio = 16.0 / 9.0
+const image_width = 400
+const real_image_height = (image_width / aspect_ratio).int
+const image_height = if real_image_height < 1: 1 else: real_image_height
+
+# camera settings
+const focal_length = 1.0
+const viewport_height = 2.0
+const viewport_width = viewport_height * (image_width / image_height)
+const camera_center = point3(0, 0, 0)
+const viewport_u = vec3(viewport_width, 0, 0)
+const viewport_v = vec3(0, -viewport_height, 0)
+
+# compute pixel values
+const pixel_delta_u = viewport_u / image_width
+const pixel_delta_v = viewport_v / image_height
+const viewport_upper_left = camera_center - vec3(0, 0, focal_length) - viewport_u/2 - viewport_v/2
+const first_pixel_center = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v)
+
+# write file header
 const filename = "output.ppm"
 var file = open(filename, fmWrite)
+file.writeLine(&"P3\n{image_width} {image_height}\n255")
 
-file.writeLine(&"P3\n{imageWidth} {imageHeight}\n255")
+# start rendering the image
+for j in 0..<image_height:
+    stdout.write(&"\rScanlines remaining: {image_height - j} ")
+    for i in 0..<image_width:
+        let pixel_center = first_pixel_center + i.float*pixel_delta_u + j.float*pixel_delta_v
+        let ray_direction = pixel_center - camera_center
 
-for j in 0..<imageHeight:
-    stdout.write(&"\rScanlines remaining: {imageHeight - j} ")
-    for i in 0..<imageWidth:
-        let color = color(float(i) / float(imageWidth - 1), float(j) / float(imageHeight - 1), 0.0)
-
-        file.write_color(color)
-
+        let r = ray(camera_center, ray_direction)
+        let pixel_color = r.ray_color
+        file.write_color(pixel_color)
 
 file.close()
 echo "\nDone. Image saved to ", filename

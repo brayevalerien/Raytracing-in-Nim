@@ -28,6 +28,7 @@ proc length_squared*(v: Vec3): float = v.x*v.x + v.y*v.y + v.z*v.z
 proc length*(v: Vec3): float = v.lengthSquared.sqrt
 
 type Point3* = Vec3
+proc point3*(x, y, z: float): Point3 = vec3(x, y, z)
 
 proc `$`*(v: Vec3): string =
     "(" & $v.x & ", " & $v.y & ", " & $v.z & ")"
