@@ -3,7 +3,7 @@ import ray
 import interval
 
 type
-    HittableList* = object
+    HittableList* = ref object of Hittable
         objects*: seq[Hittable]
 
 proc hittableList*(): HittableList =
@@ -50,7 +50,7 @@ when isMainModule:
     let r = ray(point3(0, 0, 0), vec3(0, 0, -1))
     var rec: HitRecord
     # r should hit s1 at (0, 0, -.5), directly from above
-    assert hl.hit(r, 0.001, high(float), rec)
+    assert hl.hit(r, interval(0.001, high(float)), rec)
     assert rec.p == point3(0, 0, -0.5)
     assert rec.front_face
 
