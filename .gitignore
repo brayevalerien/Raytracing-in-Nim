@@ -6,3 +6,7 @@ main
 vec3
 color
 ray
+hittable
+hittable_list
+sphere
+interval

@@ -1,21 +1,18 @@
-import std/strformat
+import std/[strformat, math]
 import vec3
 import color
 import ray
+import sphere
+import hittable
+import hittable_list
+import interval
 
-proc hit_sphere(r: Ray, center: Point3, radius: float): bool =
-    let oc = center - r.origin
-    let a = dot(r.direction, r.direction)
-    let b = - 2 * r.direction.dot(oc)
-    let c = dot(oc, oc) - radius*radius
-    let discriminant = b*b - 4*a*c
-    return 0 <= discriminant
-
-
-proc ray_color(r: Ray): Color =
-    if r.hit_sphere(point3(0, 0, -1), 0.5):
-        return color(1, 0, 0)
+proc ray_color(r: Ray, world: HittableList): Color =
+    var rec: HitRecord
+    if world.hit(r, interval(0, high(float)), rec):
+        return 0.5 * (rec.normal + color(1, 1, 1))
     
+    # miss shader (blue to white gradient)
     let unit_direction = r.direction.unit_vector
     let a = 0.5 * (unit_direction.y + 1.0)
     return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0)
@@ -26,6 +23,11 @@ const aspect_ratio = 16.0 / 9.0
 const image_width = 400
 const real_image_height = (image_width / aspect_ratio).int
 const image_height = if real_image_height < 1: 1 else: real_image_height
+
+# world settings
+var world = hittableList()
+world.add(sphere(point3(0, 0, -1), 0.5))
+world.add(sphere(point3(0, -100.5, -1), 100))
 
 # camera settings
 const focal_length = 1.0
@@ -54,7 +56,7 @@ for j in 0..<image_height:
         let ray_direction = pixel_center - camera_center
 
         let r = ray(camera_center, ray_direction)
-        let pixel_color = r.ray_color
+        let pixel_color = r.ray_color(world)
         file.write_color(pixel_color)
 
 file.close()
