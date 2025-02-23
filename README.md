@@ -17,4 +17,5 @@ nim c -r main.nim
 The rendered image will be saved as `output.ppm`.
 
 For the moment, the image should look like this:
+
 ![Current default render image](output.png)
