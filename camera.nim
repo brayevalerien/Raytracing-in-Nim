@@ -4,21 +4,27 @@ import ray
 import hittable
 import hittable_list
 import interval
+import utils
 
 type
     Camera* = object
         aspect_ratio*: float
         image_width*: int # in pixels
+        samples_per_pixel*: int
         image_height: int
         center, pixel00_loc: Point3
         pixel_delta_u, pixel_delta_v: Vec3
+        pixel_samples_scale: float
 
-proc camera*(aspect_ratio: float, image_width: int): Camera =
+proc camera*(aspect_ratio: float, image_width: int, samples_per_pixel: int): Camera =
     result.aspect_ratio = aspect_ratio
     result.image_width = image_width
     result.image_height = int(float(image_width) / aspect_ratio)
     if result.image_height < 1:
         result.image_height = 1
+
+    result.samples_per_pixel = samples_per_pixel
+    result.pixel_samples_scale = 1.0 / float(result.samples_per_pixel)
 
     result.center = point3(0, 0, 0)
 
@@ -49,6 +55,18 @@ proc ray_color(r: Ray, world: HittableList): Color =
     let a = 0.5 * (unit_direction.y + 1.0)
     return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0)
 
+proc sample_square(): Vec3 =
+    # returns a uniformly sampled vector in [-.5,.5]²x{0}
+    vec3(random_float()-0.5, random_float()-0.5, 0)
+
+proc get_ray(self: Camera, i, j: int): Ray =
+    # construct a camera ray originating from the origin and directed at randomly sampled point around the pixel location i, j.
+    let offset = sample_square()
+    let pixel_sample = self.pixel00_loc + ((float(i)+offset.x) * self.pixel_delta_u) + ((float(j)+offset.y) * self.pixel_delta_v)
+    let ray_origin = self.center
+    let ray_direction = pixel_sample - ray_origin
+    return ray(ray_origin, ray_direction)
+
 proc render*(self: Camera, world: HittableList, file: File) =
     # PPM header
     file.writeLine("P3\n" & $self.image_width & " " & $self.image_height & "\n255")
@@ -57,9 +75,8 @@ proc render*(self: Camera, world: HittableList, file: File) =
     for j in 0..<self.image_height:
         stdout.write("\rScanlines remaining: " & $(self.image_height - j))
         for i in 0..<self.image_width:
-            let pixel_center = self.pixel00_loc + i.float*self.pixel_delta_u + j.float*self.pixel_delta_v
-            let ray_direction = pixel_center - self.center
-            let r = ray(self.center, ray_direction)
-
-            let pixel_color = r.ray_color(world)
-            file.write_color(pixel_color)
+            var pixel_color = color(0, 0, 0)
+            for _ in 1..self.samples_per_pixel:
+                let r = self.get_ray(i, j)
+                pixel_color = pixel_color + r.ray_color(world)
+            file.write_color(pixel_color * self.pixel_samples_scale)

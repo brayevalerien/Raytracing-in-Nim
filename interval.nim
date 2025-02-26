@@ -13,6 +13,11 @@ proc contains*(self: Interval, x: float): bool = self.min <= x and x <= self.max
 
 proc surrounds*(self: Interval, x: float): bool = self.min < x and x < self.max
 
+proc clamp*(self: Interval, x: float): float =
+    if x < self.min: return self.min
+    if self.max < x: return self.max
+    return x
+
 const empty = interval()
 const universe = interval(-high(float), high(float))
 
@@ -45,5 +50,9 @@ when isMainModule:
     assert not i2.surrounds(2.0)
     assert not emptyInt.surrounds(0.0)
     assert universeInt.surrounds(0.0)
+
+    assert i1.clamp(2.5) == 2.5
+    assert i1.clamp(-1.0) == 1.0
+    assert i1.clamp(5.001) == 5.0
 
     echo "All unit tests passed successfully!"

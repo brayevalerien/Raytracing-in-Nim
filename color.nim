@@ -1,4 +1,5 @@
 import vec3
+import interval
 
 type Color* = Vec3
 
@@ -18,9 +19,10 @@ proc color*(r, g, b: float): Color =
 proc `$`*(c: Color): string = $c.r & " " & $c.g & " " & $c.b
 
 proc write_color*(file: File, pixel_color: Color) =
-    let ir = int(255.999 * pixel_color.r)
-    let ig = int(255.999 * pixel_color.g)
-    let ib = int(255.999 * pixel_color.b)
+    const intensity = interval(0.0, 0.999)
+    let ir = int(255.999 * intensity.clamp(pixel_color.r))
+    let ig = int(255.999 * intensity.clamp(pixel_color.g))
+    let ib = int(255.999 * intensity.clamp(pixel_color.b))
     file.writeLine($ir & " " & $ig & " " & $ib)
 
 when isMainModule:
