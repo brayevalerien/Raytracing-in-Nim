@@ -10,13 +10,14 @@ type
     Camera* = object
         aspect_ratio*: float
         image_width*: int # in pixels
+        max_depth*: int # max number of ray bounces
         samples_per_pixel*: int
         image_height: int
         center, pixel00_loc: Point3
         pixel_delta_u, pixel_delta_v: Vec3
         pixel_samples_scale: float
 
-proc camera*(aspect_ratio: float, image_width: int, samples_per_pixel: int): Camera =
+proc camera*(aspect_ratio: float, image_width: int, samples_per_pixel: int, max_depth: int): Camera =
     result.aspect_ratio = aspect_ratio
     result.image_width = image_width
     result.image_height = int(float(image_width) / aspect_ratio)
@@ -25,6 +26,8 @@ proc camera*(aspect_ratio: float, image_width: int, samples_per_pixel: int): Cam
 
     result.samples_per_pixel = samples_per_pixel
     result.pixel_samples_scale = 1.0 / float(result.samples_per_pixel)
+
+    result.max_depth = max_depth
 
     result.center = point3(0, 0, 0)
 
@@ -45,10 +48,14 @@ proc camera*(aspect_ratio: float, image_width: int, samples_per_pixel: int): Cam
     let viewport_upper_left = result.center - vec3(0, 0, focal_length) - viewport_u/2 - viewport_v/2
     result.pixel00_loc = viewport_upper_left + 0.5*(result.pixel_delta_u+result.pixel_delta_v)
 
-proc ray_color(r: Ray, world: HittableList): Color =
+proc ray_color(r: Ray, depth: int, world: HittableList): Color =
+    if depth <= 0:
+        return color(0, 0, 0)
+    
     var rec: HitRecord
-    if world.hit(r, interval(0, high(float)), rec):
-        return 0.5 * (rec.normal + color(1, 1, 1))
+    if world.hit(r, interval(0.00001, high(float)), rec):
+        let direction = random_on_hemisphere(rec.normal)
+        return 0.5 * ray_color(ray(rec.p, direction), depth-1, world)
     
     # miss shader (blue to white gradient)
     let unit_direction = r.direction.unit_vector
@@ -78,5 +85,5 @@ proc render*(self: Camera, world: HittableList, file: File) =
             var pixel_color = color(0, 0, 0)
             for _ in 1..self.samples_per_pixel:
                 let r = self.get_ray(i, j)
-                pixel_color = pixel_color + r.ray_color(world)
+                pixel_color = pixel_color + r.ray_color(self.max_depth, world)
             file.write_color(pixel_color * self.pixel_samples_scale)

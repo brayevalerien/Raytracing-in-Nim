@@ -11,6 +11,12 @@ proc random_float*(): float =
     while result == 1.0:
         result = rand(1.0)
 
+proc random_float*(min, max: float): float =
+    # Returns a random sample from U([min, max[).
+    return min + (max - min) * rand(1.0)
+    while result == max:
+        return min + (max - min) * rand(1.0)
+
 when isMainModule:
     var average: float
     const sample_count = 1000

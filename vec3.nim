@@ -1,4 +1,5 @@
 import std/math
+import utils
 
 type
     Vec3* = object
@@ -50,6 +51,27 @@ proc cross*(u, v: Vec3): Vec3 {.inline.} =
     result.y = u.z * v.x - u.x * v.z
     result.z = u.x * v.y - u.y * v.x
 proc unit_vector*(v: Vec3): Vec3 = v / v.length()
+
+proc random_vec3*(): Vec3 {.inline.} = vec3(random_float(), random_float(), random_float())
+
+proc random_vec3*(min, max: float): Vec3  {.inline.} =
+    vec3(random_float(min, max), random_float(min, max), random_float(min, max))
+
+proc random_unit*(): Vec3 {.inline.} =
+    var
+        p: Vec3
+        lensq: float
+    while true:
+        p = random_vec3(-1, 1)
+        lensq = p.length_squared
+        if MinFloatNormal < lensq and lensq <= 1:
+            return p / sqrt(lensq)
+
+proc random_on_hemisphere*(normal: Vec3): Vec3 {.inline.} =
+    var on_unit_sphere = random_unit()
+    if 0 < dot(on_unit_sphere, normal):
+        return on_unit_sphere
+    return -on_unit_sphere
 
 when isMainModule:
     const v = vec3(0, 1, 2)
