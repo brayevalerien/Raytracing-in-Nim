@@ -16,9 +16,9 @@ proc sphere*(center: Vec3, radius: float): Sphere =
 
 method hit*(s: Sphere, r: Ray, ray_t: Interval, rec: var HitRecord): bool =
     let oc = s.center - r.origin
-    let a = r.direction.lengthSquared()
+    let a = r.direction.length_squared()
     let h = dot(r.direction, oc)
-    let c = oc.lengthSquared() - s.radius * s.radius
+    let c = oc.length_squared() - s.radius * s.radius
     let discriminant = h * h - a * c
 
     if discriminant < 0.0:

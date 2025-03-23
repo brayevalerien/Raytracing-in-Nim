@@ -26,7 +26,7 @@ proc `*=`*(v: var Vec3, t: float) =
 proc `/=`*(v: var Vec3, t: float) = v *= 1/t
 
 proc length_squared*(v: Vec3): float = v.x*v.x + v.y*v.y + v.z*v.z
-proc length*(v: Vec3): float = v.lengthSquared.sqrt
+proc length*(v: Vec3): float = v.length_squared.sqrt
 
 type Point3* = Vec3
 proc point3*(x, y, z: float): Point3 = vec3(x, y, z)
@@ -80,7 +80,7 @@ when isMainModule:
     assert v.z == 2
     assert $v == "(0.0, 1.0, 2.0)"
     assert -v == vec3(-0, -1, -2)
-    assert v.lengthSquared == 5.0    
+    assert v.length_squared == 5.0    
     assert v.length == sqrt(5.0)    
 
     const u = vec3(0.5, 1.5, 2.5)
